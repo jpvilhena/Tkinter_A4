@@ -1,3 +1,5 @@
+"""Database layer for MySQL access using pymysql."""
+
 import os
 import pymysql
 from typing import Any, List, Dict, Optional

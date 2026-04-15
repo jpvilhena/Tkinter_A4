@@ -1,11 +1,15 @@
+"""Display helper for showing pandas DataFrames in a Tkinter Treeview."""
+
 import pandas as pd
 import tkinter as tk
 from tkinter import ttk
 
 class DataFrameViewer:
+    """Wraps a Treeview widget to show a DataFrame in a grid-like table."""
     def __init__(self, root):
+        """Prepare the frame container used to display the DataFrame."""
         self.root = root
-        #self.root.title("DataFrame Viewer")
+        # self.root.title("DataFrame Viewer")
 
         self.frame = ttk.Frame(root)
         self.frame.pack(fill=tk.BOTH, expand=True)
