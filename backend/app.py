@@ -1,3 +1,9 @@
+"""Main application module for query selection and result display.
+
+This module builds a Tkinter GUI that lets users choose from saved SQL
+queries, execute them, and display results in a scrollable table.
+"""
+
 import tkinter as tk
 from tkinter import ttk, messagebox
 
@@ -6,6 +12,7 @@ from functions import QUERY_OPTIONS, run_query, close_database
 
 
 class QueryApp:
+    """Main GUI controller for selecting and running saved SQL queries."""
     def __init__(self, root):
         self.root = root
         self.root.title("SQL Query Explorer")
@@ -33,6 +40,7 @@ class QueryApp:
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
     def build_query_panel(self):
+        """Construct the query selection card and control buttons."""
         self.card = ttk.Frame(self.main_frame, padding=20, relief="ridge", borderwidth=2)
         self.card.place(relx=0.5, rely=0.35, anchor="center", width=760, height=220)
 
@@ -78,6 +86,7 @@ class QueryApp:
         back_button.grid(row=0, column=1, padx=10)
 
     def show_query_panel(self):
+        """Return the UI to the query selection screen."""
         self.clear_viewer()
         self.hide_back_button()
         self.clear_message()
@@ -88,6 +97,7 @@ class QueryApp:
             self.button_frame.place(relx=0.5, rely=0.78, anchor="center")
 
     def on_run_query(self):
+        """Run the selected SQL query and display its results."""
         query_name = self.query_option.get()
         if not query_name:
             self.message_label.configure(text="Please select a query first.")
@@ -107,6 +117,7 @@ class QueryApp:
         self.show_dataframe(df)
 
     def show_dataframe(self, df):
+        """Display a pandas DataFrame in the UI using the DataFrameViewer."""
         self.clear_message()
         self.card.place_forget()
         self.button_frame.place_forget()
@@ -126,25 +137,30 @@ class QueryApp:
         self.back_button.pack(pady=10)
 
     def clear_viewer(self):
+        """Remove the current data viewer from the UI."""
         if self.viewer:
             self.viewer.frame.destroy()
             self.viewer = None
 
     def hide_back_button(self):
+        """Remove the back button when the panel is hidden."""
         if self.back_button:
             self.back_button.destroy()
             self.back_button = None
 
     def clear_message(self):
+        """Reset the user-facing status message label."""
         if self.message_label:
             self.message_label.configure(text="")
 
     def on_close(self):
+        """Close the database connection and terminate the window."""
         close_database()
         self.root.destroy()
 
 
 def main():
+    """Start the Tkinter application."""
     root = tk.Tk()
     app = QueryApp(root)
     root.mainloop()
