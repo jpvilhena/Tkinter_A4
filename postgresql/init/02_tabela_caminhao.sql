@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS caminhao (
+    id_caminhao INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    ultima_vistoria DATE,
+    crlv VARCHAR(12)
+);
