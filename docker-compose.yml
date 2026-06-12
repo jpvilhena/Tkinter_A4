@@ -17,24 +17,24 @@ services:
       # Automatically executes all SQL files
       - ./postgresql/init:/docker-entrypoint-initdb.d
 
-  #backend:
-  #  build:
-  #    context: ./backend
-#
-  #  container_name: backend
-#
-  #  depends_on:
-  #    - db
-#
-  #  environment:
-  #    DB_HOST: db
-  #    DB_PORT: 5432
-  #    DB_NAME: mudancas
-  #    DB_USER: postgres
-  #    DB_PASSWORD: postgres
-#
-  #  ports:
-  #    - "8000:8000"
+  backend:
+    build:
+      context: ./backend
+
+    container_name: backend
+
+    depends_on:
+      - db
+
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: mudancas
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+
+    ports:
+      - "8000:8000"
 
 volumes:
   postgres_data:
