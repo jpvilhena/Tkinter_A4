@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MudaExpress - Gestão de Mudanças</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="container">
+            <h1 class="logo">MudaExpress</h1>
+            <div class="nav-links">
+                <button class="nav-btn active" onclick="switchTab('clients')">Clientes</button>
+                <button class="nav-btn" onclick="switchTab('drivers')">Motoristas</button>
+                <button class="nav-btn" onclick="switchTab('trucks')">Caminhões</button>
+                <button class="nav-btn" onclick="switchTab('helpers')">Ajudantes</button>
+                <button class="nav-btn" onclick="switchTab('services')">Serviços</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container main-content">
+        <!-- Alert Messages -->
+        <div id="alertContainer"></div>
+
+        <!-- CLIENTES TAB -->
+        <div id="clients" class="tab-content active">
+            <h2>Gestão de Clientes</h2>
+            
+            <!-- Form para criar cliente -->
+            <div class="form-section">
+                <h3>Cadastrar Novo Cliente</h3>
+                <form onsubmit="createClient(event)" class="form">
+                    <input type="text" id="clientName" placeholder="Nome do Cliente" required>
+                    <input type="email" id="clientEmail" placeholder="Email" required>
+                    <input type="tel" id="clientPhone" placeholder="Telefone" required>
+                    <input type="text" id="clientAddress" placeholder="Endereço" required>
+                    <button type="submit" class="btn btn-primary">Adicionar Cliente</button>
+                </form>
+            </div>
+
+            <!-- Lista de clientes -->
+            <div class="list-section">
+                <h3>Clientes Cadastrados</h3>
+                <div id="clientsList" class="list-container"></div>
+            </div>
+        </div>
+
+        <!-- DRIVERS TAB -->
+        <div id="drivers" class="tab-content">
+            <h2>Gestão de Motoristas</h2>
+            
+            <!-- Form para criar motorista -->
+            <div class="form-section">
+                <h3>Cadastrar Novo Motorista</h3>
+                <form onsubmit="createDriver(event)" class="form">
+                    <input type="text" id="driverName" placeholder="Nome do Motorista" required>
+                    <input type="text" id="driverCPF" placeholder="CPF" required>
+                    <input type="text" id="driverLicense" placeholder="Número da Habilitação" required>
+                    <input type="tel" id="driverPhone" placeholder="Telefone" required>
+                    <button type="submit" class="btn btn-primary">Adicionar Motorista</button>
+                </form>
+            </div>
+
+            <!-- Lista de motoristas -->
+            <div class="list-section">
+                <h3>Motoristas Cadastrados</h3>
+                <div id="driversList" class="list-container"></div>
+            </div>
+        </div>
+
+        <!-- TRUCKS TAB -->
+        <div id="trucks" class="tab-content">
+            <h2>Gestão de Caminhões</h2>
+            
+            <!-- Form para criar caminhão -->
+            <div class="form-section">
+                <h3>Cadastrar Novo Caminhão</h3>
+                <form onsubmit="createTruck(event)" class="form">
+                    <input type="text" id="truckPlate" placeholder="Placa (ex: ABC-1234)" required>
+                    <input type="text" id="truckModel" placeholder="Modelo (ex: Scania P320)" required>
+                    <input type="text" id="truckCapacity" placeholder="Capacidade (ex: 10 toneladas)" required>
+                    <textarea id="truckNotes" placeholder="Observações"></textarea>
+                    <button type="submit" class="btn btn-primary">Adicionar Caminhão</button>
+                </form>
+            </div>
+
+            <!-- Lista de caminhões -->
+            <div class="list-section">
+                <h3>Caminhões Cadastrados</h3>
+                <div id="trucksList" class="list-container"></div>
+            </div>
+        </div>
+
+        <!-- HELPERS TAB -->
+        <div id="helpers" class="tab-content">
+            <h2>Gestão de Ajudantes</h2>
+            
+            <!-- Form para criar ajudante -->
+            <div class="form-section">
+                <h3>Cadastrar Novo Ajudante</h3>
+                <form onsubmit="createHelper(event)" class="form">
+                    <input type="text" id="helperName" placeholder="Nome do Ajudante" required>
+                    <input type="tel" id="helperPhone" placeholder="Telefone" required>
+                    <input type="text" id="helperDailyRate" placeholder="Diária (ex: R$ 100,00)" required>
+                    <button type="submit" class="btn btn-primary">Adicionar Ajudante</button>
+                </form>
+            </div>
+
+            <!-- Lista de ajudantes -->
+            <div class="list-section">
+                <h3>Ajudantes Cadastrados</h3>
+                <div id="helpersList" class="list-container"></div>
+            </div>
+        </div>
+
+        <!-- SERVICES TAB -->
+        <div id="services" class="tab-content">
+            <h2>Gestão de Serviços de Mudança</h2>
+            
+            <!-- Form para criar serviço -->
+            <div class="form-section">
+                <h3>Registrar Novo Serviço</h3>
+                <form onsubmit="createService(event)" class="form">
+                    <select id="serviceClient" required>
+                        <option value="">Selecione o Cliente</option>
+                    </select>
+                    <input type="text" id="serviceOrigin" placeholder="Endereço de Origem" required>
+                    <input type="text" id="serviceDestination" placeholder="Endereço de Destino" required>
+                    <input type="number" id="serviceBoxCount" placeholder="Quantidade de Caixas" required>
+                    <input type="date" id="serviceDate" required>
+                    
+                    <div class="multi-select">
+                        <label>Selecione os Caminhões (pode selecionar múltiplos):</label>
+                        <div id="trucksCheckbox" class="checkbox-group"></div>
+                    </div>
+                    
+                    <div class="multi-select">
+                        <label>Selecione os Motoristas (pode selecionar múltiplos):</label>
+                        <div id="driversCheckbox" class="checkbox-group"></div>
+                    </div>
+                    
+                    <div class="multi-select">
+                        <label>Selecione os Ajudantes (pode selecionar múltiplos):</label>
+                        <div id="helpersCheckbox" class="checkbox-group"></div>
+                    </div>
+                    
+                    <textarea id="serviceNotes" placeholder="Observações"></textarea>
+                    <button type="submit" class="btn btn-primary">Registrar Serviço</button>
+                </form>
+            </div>
+
+            <!-- Lista de serviços -->
+            <div class="list-section">
+                <h3>Serviços Cadastrados</h3>
+                <div id="servicesList" class="list-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para editar itens -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3 id="modalTitle">Editar Item</h3>
+            <form id="editForm" onsubmit="submitEdit(event)"></form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
