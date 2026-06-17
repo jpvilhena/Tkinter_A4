@@ -1,100 +1,213 @@
-from pydantic import BaseModel
-from typing import Optional, List
-from datetime import date, datetime
+"""
+Pydantic Schemas for Request/Response Validation
+
+Uses Pydantic v2 conventions: model_config, ConfigDict, Literal types,
+Decimal for monetary values, and proper Update schemas for PATCH routes.
+"""
+
+from pydantic import BaseModel, Field, field_validator, ConfigDict
+from typing import Optional, Literal
+from datetime import date
+from decimal import Decimal
 
 
-class ClientBase(BaseModel):
-    name: str
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    address: Optional[str] = None
+# ==================== Cliente Schemas ====================
+class ClienteBase(BaseModel):
+    nome: str = Field(..., min_length=1, max_length=30)
+    data_nascimento: Optional[date] = None
+    cpf: Optional[str] = Field(None, max_length=11)
+    rg: Optional[str] = Field(None, max_length=9)
+    email: Optional[str] = Field(None, max_length=30)
+    contato: Optional[str] = Field(None, max_length=20)
+    endereco: Optional[str] = Field(None, max_length=150)
+
+    @field_validator("cpf")
+    @classmethod
+    def cpf_must_be_digits(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and (not v.isdigit() or len(v) != 11):
+            raise ValueError("CPF must be exactly 11 numeric digits")
+        return v
 
 
-class ClientCreate(ClientBase):
+class ClienteCreate(ClienteBase):
     pass
 
 
-class ClientRead(ClientBase):
-    id: int
-
-    class Config:
-        orm_mode = True
-
-
-class TruckBase(BaseModel):
-    plate: str
-    model: Optional[str] = None
-    capacity: Optional[str] = None
-    notes: Optional[str] = None
+class ClienteUpdate(BaseModel):
+    nome: Optional[str] = Field(None, min_length=1, max_length=30)
+    data_nascimento: Optional[date] = None
+    cpf: Optional[str] = Field(None, max_length=11)
+    rg: Optional[str] = Field(None, max_length=9)
+    email: Optional[str] = Field(None, max_length=30)
+    contato: Optional[str] = Field(None, max_length=20)
+    endereco: Optional[str] = Field(None, max_length=150)
 
 
-class TruckCreate(TruckBase):
+class ClienteResponse(ClienteBase):
+    model_config = ConfigDict(from_attributes=True)
+    id_cliente: int
+
+
+# ==================== Caminhao Schemas ====================
+class CaminhaoBase(BaseModel):
+    ultima_vistoria: Optional[date] = None
+    crlv: Optional[str] = Field(None, max_length=12)
+
+
+class CaminhaoCreate(CaminhaoBase):
     pass
 
 
-class TruckRead(TruckBase):
-    id: int
-
-    class Config:
-        orm_mode = True
+class CaminhaoUpdate(BaseModel):
+    ultima_vistoria: Optional[date] = None
+    crlv: Optional[str] = Field(None, max_length=12)
 
 
-class DriverBase(BaseModel):
-    name: str
-    cpf: Optional[str] = None
-    license: str
-    phone: Optional[str] = None
+class CaminhaoResponse(CaminhaoBase):
+    model_config = ConfigDict(from_attributes=True)
+    id_caminhao: int
 
 
-class DriverCreate(DriverBase):
+# ==================== Prestador Schemas ====================
+class PrestadorBase(BaseModel):
+    nome: str = Field(..., min_length=1, max_length=30)
+    data_nascimento: Optional[date] = None
+    cpf: Optional[str] = Field(None, max_length=11)
+    rg: Optional[str] = Field(None, max_length=9)
+    cnh: Optional[str] = Field(None, max_length=9)
+    email: Optional[str] = Field(None, max_length=30)
+    contato: Optional[str] = Field(None, max_length=20)
+    tipo_prestador: Literal["motorista", "ajudante", "outro"] = "ajudante"
+    data_admissao: Optional[date] = None
+
+    @field_validator("cpf")
+    @classmethod
+    def cpf_must_be_digits(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and (not v.isdigit() or len(v) != 11):
+            raise ValueError("CPF must be exactly 11 numeric digits")
+        return v
+
+
+class PrestadorCreate(PrestadorBase):
     pass
 
 
-class DriverRead(DriverBase):
-    id: int
+class PrestadorUpdate(BaseModel):
+    nome: Optional[str] = Field(None, min_length=1, max_length=30)
+    data_nascimento: Optional[date] = None
+    cpf: Optional[str] = Field(None, max_length=11)
+    rg: Optional[str] = Field(None, max_length=9)
+    cnh: Optional[str] = Field(None, max_length=9)
+    email: Optional[str] = Field(None, max_length=30)
+    contato: Optional[str] = Field(None, max_length=20)
+    tipo_prestador: Optional[Literal["motorista", "ajudante", "outro"]] = None
+    data_admissao: Optional[date] = None
 
-    class Config:
-        orm_mode = True
+
+class PrestadorResponse(PrestadorBase):
+    model_config = ConfigDict(from_attributes=True)
+    id_prestador: int
 
 
-class HelperBase(BaseModel):
-    name: str
-    phone: Optional[str] = None
-    daily_rate: Optional[str] = None
+# ==================== ServicoOferecido Schemas ====================
+class ServicoOferecidoBase(BaseModel):
+    nome: str = Field(..., min_length=1, max_length=60)
+    descricao: Optional[str] = None
+    quantidade_caixa_min: Optional[int] = Field(None, ge=0)
+    quantidade_caixa_max: Optional[int] = Field(None, ge=0)
+    requer_ajudante: bool = False
+    preco: Optional[Decimal] = Field(None, gt=0, decimal_places=2)
 
 
-class HelperCreate(HelperBase):
+class ServicoOferecidoCreate(ServicoOferecidoBase):
     pass
 
 
-class HelperRead(HelperBase):
-    id: int
-
-    class Config:
-        orm_mode = True
-
-
-class ServiceBase(BaseModel):
-    client_id: int
-    origin: str
-    destination: str
-    box_count: int
-    service_date: date
-    notes: Optional[str] = None
+class ServicoOferecidoUpdate(BaseModel):
+    nome: Optional[str] = Field(None, min_length=1, max_length=60)
+    descricao: Optional[str] = None
+    quantidade_caixa_min: Optional[int] = Field(None, ge=0)
+    quantidade_caixa_max: Optional[int] = Field(None, ge=0)
+    requer_ajudante: Optional[bool] = None
+    preco: Optional[Decimal] = Field(None, gt=0, decimal_places=2)
 
 
-class ServiceCreate(ServiceBase):
-    truck_ids: Optional[List[int]] = []
-    driver_ids: Optional[List[int]] = []
-    helper_ids: Optional[List[int]] = []
+class ServicoOferecidoResponse(ServicoOferecidoBase):
+    model_config = ConfigDict(from_attributes=True)
+    id_servico_oferecido: int
 
 
-class ServiceRead(ServiceBase):
-    id: int
-    created_at: Optional[datetime]
-    trucks: List[TruckRead] = []
-    drivers: List[DriverRead] = []
-    helpers: List[HelperRead] = []
+# ==================== ContratoMudanca Schemas ====================
+class ContratoMudancaBase(BaseModel):
+    id_cliente: int
+    id_servico_oferecido: Optional[int] = None
+    quantidade_caixa: Optional[int] = Field(None, ge=0)
+    endereco_origem: Optional[str] = Field(None, max_length=150)
+    endereco_destino: Optional[str] = Field(None, max_length=150)
+    data_contrato: Optional[date] = None
+    data_servico: Optional[date] = None
+    forma_pagamento: Optional[Literal["pix", "credito", "debito", "dinheiro"]] = None
 
-    class Config:
-        orm_mode = True
+
+class ContratoMudancaCreate(ContratoMudancaBase):
+    pass
+
+
+class ContratoMudancaUpdate(BaseModel):
+    id_servico_oferecido: Optional[int] = None
+    quantidade_caixa: Optional[int] = Field(None, ge=0)
+    endereco_origem: Optional[str] = Field(None, max_length=150)
+    endereco_destino: Optional[str] = Field(None, max_length=150)
+    data_contrato: Optional[date] = None
+    data_servico: Optional[date] = None
+    forma_pagamento: Optional[Literal["pix", "credito", "debito", "dinheiro"]] = None
+
+
+class ContratoMudancaResponse(ContratoMudancaBase):
+    model_config = ConfigDict(from_attributes=True)
+    id_contrato: int
+
+
+# ==================== AlocacaoServico Schemas ====================
+class AlocacaoServicoBase(BaseModel):
+    id_contrato: int
+    id_caminhao: Optional[int] = None
+    status_servico: Literal["pendente", "concluido"] = "pendente"
+    data_inicio: Optional[date] = None
+    data_fim: Optional[date] = None
+
+
+class AlocacaoServicoCreate(AlocacaoServicoBase):
+    pass
+
+
+class AlocacaoServicoUpdate(BaseModel):
+    id_caminhao: Optional[int] = None
+    status_servico: Optional[Literal["pendente", "concluido"]] = None
+    data_inicio: Optional[date] = None
+    data_fim: Optional[date] = None
+
+
+class AlocacaoServicoResponse(AlocacaoServicoBase):
+    model_config = ConfigDict(from_attributes=True)
+    id_alocacao: int
+
+
+# ==================== ContratoPrestador Schemas ====================
+class ContratoPrestadorBase(BaseModel):
+    id_contrato: int
+    id_prestador: int
+    funcao: Literal["motorista", "ajudante", "outro"] = "ajudante"
+
+
+class ContratoPrestadorCreate(ContratoPrestadorBase):
+    pass
+
+
+class ContratoPrestadorUpdate(BaseModel):
+    funcao: Optional[Literal["motorista", "ajudante", "outro"]] = None
+
+
+class ContratoPrestadorResponse(ContratoPrestadorBase):
+    model_config = ConfigDict(from_attributes=True)
+    id_contrato_prestador: int

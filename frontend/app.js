@@ -191,7 +191,7 @@ async function createClient(event) {
     };
 
     try {
-        await apiCall('/clients', 'POST', clientData);
+        await apiCall('/clients/', 'POST', clientData);
         showAlert('Cliente cadastrado com sucesso!', 'success');
 
         // Limpa o formulário
