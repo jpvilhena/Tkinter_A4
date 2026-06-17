@@ -1,713 +1,409 @@
-/* ====================================
-   MUDAEXPRESS - FRONTEND JAVASCRIPT
-   Lógica de comunicação com o backend
-   ==================================== */
+/* ── Entity definitions ── */
+const ENTITIES = {
+  clientes: {
+    path: '/clientes',
+    idField: 'id_cliente',
+    cols: [
+      ['id_cliente',       '#'],
+      ['nome',             'Nome'],
+      ['cpf',              'CPF'],
+      ['email',            'Email'],
+      ['contato',          'Contato'],
+      ['endereco',         'Endereço'],
+    ],
+    fields: [
+      { n: 'nome',             l: 'Nome',              t: 'text',   req: true },
+      { n: 'cpf',              l: 'CPF (11 dígitos)',   t: 'text' },
+      { n: 'rg',               l: 'RG',                t: 'text' },
+      { n: 'email',            l: 'Email',             t: 'text' },
+      { n: 'contato',          l: 'Contato',           t: 'text' },
+      { n: 'data_nascimento',  l: 'Data de nascimento', t: 'date' },
+      { n: 'endereco',         l: 'Endereço',          t: 'text' },
+    ],
+  },
 
-// Configuração da API - MUDE ESTE ENDEREÇO SE SEU BACKEND ESTIVER EM OUTRO LOCAL
-const API_BASE_URL = 'http://localhost:8000';
+  caminhoes: {
+    path: '/caminhoes',
+    idField: 'id_caminhao',
+    cols: [
+      ['id_caminhao',     '#'],
+      ['crlv',            'CRLV'],
+      ['ultima_vistoria', 'Última vistoria'],
+    ],
+    fields: [
+      { n: 'crlv',             l: 'CRLV',              t: 'text' },
+      { n: 'ultima_vistoria',  l: 'Última vistoria',   t: 'date' },
+    ],
+  },
 
-// ====================================
-// FUNÇÕES DE UTILITÁRIOS
-// ====================================
+  prestadores: {
+    path: '/prestadores',
+    idField: 'id_prestador',
+    cols: [
+      ['id_prestador',   '#'],
+      ['nome',           'Nome'],
+      ['tipo_prestador', 'Tipo'],
+      ['cpf',            'CPF'],
+      ['cnh',            'CNH'],
+      ['email',          'Email'],
+    ],
+    fields: [
+      { n: 'nome',            l: 'Nome',              t: 'text',   req: true },
+      { n: 'tipo_prestador',  l: 'Tipo',              t: 'select', opts: ['motorista', 'ajudante', 'outro'] },
+      { n: 'cpf',             l: 'CPF (11 dígitos)',  t: 'text' },
+      { n: 'rg',              l: 'RG',                t: 'text' },
+      { n: 'cnh',             l: 'CNH',               t: 'text' },
+      { n: 'email',           l: 'Email',             t: 'text' },
+      { n: 'contato',         l: 'Contato',           t: 'text' },
+      { n: 'data_nascimento', l: 'Data de nascimento', t: 'date' },
+      { n: 'data_admissao',   l: 'Data de admissão',  t: 'date' },
+    ],
+  },
 
-/**
- * Alterna entre abas (tabs) da aplicação
- * @param {string} tabName - Nome da aba a exibir
- */
-function switchTab(tabName) {
-    // Oculta todas as abas
-    const allTabs = document.querySelectorAll('.tab-content');
-    allTabs.forEach(tab => tab.classList.remove('active'));
+  servicos: {
+    path: '/servicos',
+    idField: 'id_servico_oferecido',
+    cols: [
+      ['id_servico_oferecido', '#'],
+      ['nome',                 'Nome'],
+      ['preco',                'Preço (R$)'],
+      ['requer_ajudante',      'Ajudante?'],
+      ['quantidade_caixa_min', 'Cx. mín'],
+      ['quantidade_caixa_max', 'Cx. máx'],
+    ],
+    fields: [
+      { n: 'nome',                 l: 'Nome',           t: 'text',   req: true },
+      { n: 'preco',                l: 'Preço (R$)',      t: 'number' },
+      { n: 'descricao',            l: 'Descrição',      t: 'text' },
+      { n: 'requer_ajudante',      l: 'Requer ajudante', t: 'select', opts: ['false', 'true'] },
+      { n: 'quantidade_caixa_min', l: 'Qtd caixas mín', t: 'number' },
+      { n: 'quantidade_caixa_max', l: 'Qtd caixas máx', t: 'number' },
+    ],
+  },
 
-    // Remove a classe 'active' de todos os botões de navegação
-    const allNavBtns = document.querySelectorAll('.nav-btn');
-    allNavBtns.forEach(btn => btn.classList.remove('active'));
+  contratos: {
+    path: '/contratos',
+    idField: 'id_contrato',
+    cols: [
+      ['id_contrato',        '#'],
+      ['id_cliente',         'Cliente ID'],
+      ['forma_pagamento',    'Pagamento'],
+      ['data_servico',       'Data serviço'],
+      ['endereco_origem',    'Origem'],
+      ['endereco_destino',   'Destino'],
+    ],
+    fields: [
+      { n: 'id_cliente',           l: 'ID do cliente',      t: 'number', req: true },
+      { n: 'id_servico_oferecido', l: 'ID do serviço',      t: 'number' },
+      { n: 'forma_pagamento',      l: 'Forma de pagamento', t: 'select', opts: ['pix', 'credito', 'debito', 'dinheiro'] },
+      { n: 'quantidade_caixa',     l: 'Qtd de caixas',      t: 'number' },
+      { n: 'data_contrato',        l: 'Data do contrato',   t: 'date' },
+      { n: 'data_servico',         l: 'Data do serviço',    t: 'date' },
+      { n: 'endereco_origem',      l: 'Endereço de origem', t: 'text' },
+      { n: 'endereco_destino',     l: 'Endereço de destino', t: 'text' },
+    ],
+  },
 
-    // Mostra a aba selecionada e marca seu botão como ativo
-    document.getElementById(tabName).classList.add('active');
-    event.target.classList.add('active');
+  alocacoes: {
+    path: '/alocacoes',
+    idField: 'id_alocacao',
+    cols: [
+      ['id_alocacao',   '#'],
+      ['id_contrato',   'Contrato ID'],
+      ['id_caminhao',   'Caminhão ID'],
+      ['status_servico','Status'],
+      ['data_inicio',   'Início'],
+      ['data_fim',      'Fim'],
+    ],
+    fields: [
+      { n: 'id_contrato',   l: 'ID do contrato', t: 'number', req: true },
+      { n: 'id_caminhao',   l: 'ID do caminhão', t: 'number' },
+      { n: 'status_servico',l: 'Status',          t: 'select', opts: ['pendente', 'concluido'] },
+      { n: 'data_inicio',   l: 'Data de início',  t: 'date' },
+      { n: 'data_fim',      l: 'Data de fim',     t: 'date' },
+    ],
+  },
 
-    // Carrega os dados da aba selecionada
-    if (tabName === 'clients') {
-        loadClients();
-    } else if (tabName === 'drivers') {
-        loadDrivers();
-    } else if (tabName === 'trucks') {
-        loadTrucks();
-    } else if (tabName === 'helpers') {
-        loadHelpers();
-    } else if (tabName === 'services') {
-        loadServices();
-        loadClientsForSelect();
-        loadTrucksCheckbox();
-        loadDriversCheckbox();
-        loadHelpersCheckbox();
+  cprestadores: {
+    path: '/contrato-prestadores',
+    idField: 'id_contrato_prestador',
+    cols: [
+      ['id_contrato_prestador', '#'],
+      ['id_contrato',           'Contrato ID'],
+      ['id_prestador',          'Prestador ID'],
+      ['funcao',                'Função'],
+    ],
+    fields: [
+      { n: 'id_contrato',  l: 'ID do contrato',  t: 'number', req: true },
+      { n: 'id_prestador', l: 'ID do prestador', t: 'number', req: true },
+      { n: 'funcao',       l: 'Função',           t: 'select', opts: ['motorista', 'ajudante', 'outro'] },
+    ],
+  },
+};
+
+/* ── State ── */
+let currentPage   = 'clientes';
+let editingId     = null;
+let editingEntity = null;
+
+/* ── API helpers ── */
+function apiBase() {
+  return document.getElementById('api-base').value.replace(/\/$/, '');
+}
+
+async function apiFetch(path, options = {}) {
+  const res = await fetch(apiBase() + path, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || `HTTP ${res.status}`);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+/* ── Navigation ── */
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.remove('active');
+    n.removeAttribute('aria-current');
+  });
+
+  document.getElementById('page-' + name).classList.add('active');
+  const btn = document.querySelector(`[data-page="${name}"]`);
+  if (btn) { btn.classList.add('active'); btn.setAttribute('aria-current', 'page'); }
+
+  currentPage = name;
+  loadTable(name);
+}
+
+/* ── Table rendering ── */
+async function loadTable(name) {
+  const e   = ENTITIES[name];
+  const el  = document.getElementById('table-' + name);
+  el.innerHTML = stateHtml('loading', 'Carregando…');
+
+  try {
+    const data = await apiFetch(e.path + '?limit=50');
+    if (!data.length) {
+      el.innerHTML = stateHtml('empty', 'Nenhum registro encontrado', 'ti-inbox');
+      return;
     }
+    el.innerHTML = buildTable(e, data);
+  } catch (err) {
+    el.innerHTML = stateHtml('error', 'Erro ao conectar com a API: ' + err.message, 'ti-wifi-off');
+  }
 }
 
-/**
- * Exibe uma mensagem de alerta na tela
- * @param {string} message - Mensagem a exibir
- * @param {string} type - Tipo de alerta: 'success' ou 'error'
- */
-function showAlert(message, type = 'success') {
-    const alertContainer = document.getElementById('alertContainer');
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type}`;
-    alertDiv.textContent = message;
-
-    alertContainer.appendChild(alertDiv);
-
-    // Remove o alerta após 4 segundos
-    setTimeout(() => {
-        alertDiv.remove();
-    }, 4000);
+function stateHtml(type, msg, icon = '') {
+  const cls = type === 'error' ? 'state-msg error' : 'state-msg';
+  const ico = icon ? `<i class="ti ${icon}" aria-hidden="true"></i>` : '';
+  return `<div class="${cls}">${ico}${msg}</div>`;
 }
 
-/**
- * Realiza chamadas à API do backend
- * @param {string} endpoint - Caminho do endpoint (ex: '/clients')
- * @param {string} method - Método HTTP (GET, POST, PUT, DELETE)
- * @param {object} data - Dados a enviar (para POST/PUT)
- * @returns {Promise} - Promise com a resposta da API
- */
-async function apiCall(endpoint, method = 'GET', data = null) {
-    try {
-        const options = {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        };
+function buildTable(e, data) {
+  const headers = e.cols.map(c => `<th>${c[1]}</th>`).join('') + '<th>Ações</th>';
 
-        // Adiciona o corpo da requisição para POST/PUT
-        if (data) {
-            options.body = JSON.stringify(data);
-        }
+  const rows = data.map(row => {
+    const cells = e.cols.map(([key]) => {
+      let v = row[key];
 
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-        
-        console.log(`${API_BASE_URL}${endpoint}`, options)
-        // Verifica se a resposta foi bem-sucedida
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || `Erro na requisição: ${response.status}`);
-        }
+      if (key === 'status_servico') {
+        v = `<span class="badge ${v === 'concluido' ? 'badge-done' : 'badge-pending'}">${v ?? '-'}</span>`;
+      } else if (key === 'tipo_prestador' || key === 'funcao') {
+        const cls = v === 'motorista' ? 'badge-motorista' : v === 'ajudante' ? 'badge-ajudante' : 'badge-outro';
+        v = `<span class="badge ${cls}">${v ?? '-'}</span>`;
+      } else if (key === 'requer_ajudante') {
+        v = v ? '<i class="ti ti-check" style="color:var(--color-success-text)"></i>' : '—';
+      } else if (v === null || v === undefined || v === '') {
+        v = '<span style="color:var(--color-text-hint)">—</span>';
+      }
 
-        // Para DELETE, a resposta pode estar vazia
-        if (method === 'DELETE') {
-            return { ok: true };
-        }
+      return `<td>${v}</td>`;
+    }).join('');
 
-        return await response.json();
-    } catch (error) {
-        console.error('Erro na API:', error);
-        showAlert(`Erro: ${error.message}`, 'error');
-        throw error;
-    }
+    const id = row[e.idField];
+    return `
+      <tr>
+        ${cells}
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-sm" onclick="openEdit('${currentPage}',${id})" aria-label="Editar registro ${id}">
+              <i class="ti ti-edit" aria-hidden="true"></i>
+            </button>
+            <button class="btn btn-sm btn-danger" onclick="deleteRecord('${currentPage}',${id})" aria-label="Deletar registro ${id}">
+              <i class="ti ti-trash" aria-hidden="true"></i>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+
+  return `<table><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
 }
 
-/**
- * Abre o modal de edição
- * @param {string} title - Título do modal
- */
-function openModal(title) {
-    document.getElementById('editModal').style.display = 'block';
-    document.getElementById('modalTitle').textContent = title;
+/* ── Form building ── */
+function buildForm(entityKey, values = {}) {
+  const fields = ENTITIES[entityKey].fields;
+  const html   = [];
+
+  for (let i = 0; i < fields.length; i += 2) {
+    const f1 = fields[i];
+    const f2 = fields[i + 1];
+    html.push(`<div class="form-row">${fieldHtml(f1, values)}${f2 ? fieldHtml(f2, values) : '<div></div>'}</div>`);
+  }
+
+  return html.join('');
 }
 
-/**
- * Fecha o modal de edição
- */
+function fieldHtml(f, values) {
+  const raw = values[f.n];
+  const val = raw === null || raw === undefined ? '' : raw;
+
+  if (f.t === 'select') {
+    const opts = f.opts.map(o =>
+      `<option value="${o}" ${String(val) === o ? 'selected' : ''}>${o}</option>`
+    ).join('');
+    return `
+      <div class="form-group">
+        <label for="f-${f.n}">${f.l}${f.req ? ' <span aria-hidden="true">*</span>' : ''}</label>
+        <select id="f-${f.n}">${opts}</select>
+      </div>`;
+  }
+
+  return `
+    <div class="form-group">
+      <label for="f-${f.n}">${f.l}${f.req ? ' <span aria-hidden="true">*</span>' : ''}</label>
+      <input type="${f.t}" id="f-${f.n}" value="${val}" ${f.req ? 'required' : ''} />
+    </div>`;
+}
+
+/* ── Modal ── */
+function openCreate(entity) {
+  editingId     = null;
+  editingEntity = entity;
+  document.getElementById('modal-title').textContent = 'Novo registro';
+  document.getElementById('modal-body').innerHTML    = buildForm(entity);
+  document.getElementById('modal').classList.add('open');
+  focusFirstField();
+}
+
+async function openEdit(entity, id) {
+  editingId     = id;
+  editingEntity = entity;
+  const e = ENTITIES[entity];
+
+  document.getElementById('modal-title').textContent = `Editar registro #${id}`;
+  document.getElementById('modal-body').innerHTML    = stateHtml('loading', 'Carregando…');
+  document.getElementById('modal').classList.add('open');
+
+  try {
+    const data = await apiFetch(e.path + '/' + id);
+    document.getElementById('modal-body').innerHTML = buildForm(entity, data);
+  } catch {
+    document.getElementById('modal-body').innerHTML = buildForm(entity);
+  }
+
+  focusFirstField();
+}
+
 function closeModal() {
-    document.getElementById('editModal').style.display = 'none';
-    document.getElementById('editForm').innerHTML = '';
+  document.getElementById('modal').classList.remove('open');
+  editingId     = null;
+  editingEntity = null;
 }
 
-// Fecha o modal quando clica fora dele
-window.onclick = function(event) {
-    const modal = document.getElementById('editModal');
-    if (event.target === modal) {
-        closeModal();
-    }
+function focusFirstField() {
+  setTimeout(() => {
+    const first = document.querySelector('#modal-body input, #modal-body select');
+    if (first) first.focus();
+  }, 50);
 }
 
-// ====================================
-// FUNÇÕES DE CLIENTES
-// ====================================
+/* ── Save ── */
+async function saveRecord() {
+  const e       = ENTITIES[editingEntity];
+  const payload = {};
 
-/**
- * Carrega a lista de clientes da API e exibe na tela
- */
-async function loadClients() {
-    try {
-        const clients = await apiCall('/clients');
-        const clientsList = document.getElementById('clientsList');
+  for (const f of e.fields) {
+    const el = document.getElementById('f-' + f.n);
+    if (!el) continue;
+    const raw = el.value.trim();
+    if (raw === '') continue;
 
-        // Limpa a lista
-        clientsList.innerHTML = '';
+    if (f.t === 'number')         payload[f.n] = Number(raw);
+    else if (f.n === 'requer_ajudante') payload[f.n] = raw === 'true';
+    else                               payload[f.n] = raw;
+  }
 
-        // Se não houver clientes, exibe mensagem
-        if (clients.length === 0) {
-            clientsList.innerHTML = '<div class="empty-state"><p>Nenhum cliente cadastrado</p></div>';
-            return;
-        }
+  const isEdit = editingId !== null;
+  const path   = e.path + (isEdit ? '/' + editingId : '');
+  const method = isEdit ? 'PATCH' : 'POST';
 
-        // Exibe cada cliente em um card
-        clients.forEach(client => {
-            const card = document.createElement('div');
-            card.className = 'item-card';
-            card.innerHTML = `
-                <div class="item-info">
-                    <h4>${client.name}</h4>
-                    <p><strong>Email:</strong> ${client.email || 'N/A'}</p>
-                    <p><strong>Telefone:</strong> ${client.phone || 'N/A'}</p>
-                    <p><strong>Endereço:</strong> ${client.address || 'N/A'}</p>
-                </div>
-                <div class="item-actions">
-                    <button class="btn btn-success" onclick="editClient(${client.id})">Editar</button>
-                    <button class="btn btn-danger" onclick="deleteClient(${client.id})">Deletar</button>
-                </div>
-            `;
-            clientsList.appendChild(card);
-        });
-    } catch (error) {
-        console.error('Erro ao carregar clientes:', error);
-    }
+  try {
+    await apiFetch(path, { method, body: JSON.stringify(payload) });
+    closeModal();
+    showToast(isEdit ? 'Atualizado com sucesso' : 'Criado com sucesso');
+    loadTable(editingEntity);
+  } catch (err) {
+    showToast('Erro: ' + err.message, true);
+  }
 }
 
-/**
- * Cria um novo cliente via formulário
- */
-async function createClient(event) {
-    event.preventDefault();
+/* ── Delete ── */
+async function deleteRecord(entity, id) {
+  if (!confirm(`Deletar registro #${id}? Esta ação não pode ser desfeita.`)) return;
+  const e = ENTITIES[entity];
 
-    // Coleta os dados do formulário
-    const clientData = {
-        name: document.getElementById('clientName').value,
-        email: document.getElementById('clientEmail').value,
-        phone: document.getElementById('clientPhone').value,
-        address: document.getElementById('clientAddress').value
-    };
-
-    try {
-        await apiCall('/clients/', 'POST', clientData);
-        showAlert('Cliente cadastrado com sucesso!', 'success');
-
-        // Limpa o formulário
-        event.target.reset();
-
-        // Recarrega a lista de clientes
-        loadClients();
-    } catch (error) {
-        console.error('Erro ao criar cliente:', error);
-    }
+  try {
+    await apiFetch(e.path + '/' + id, { method: 'DELETE' });
+    showToast('Registro deletado');
+    loadTable(entity);
+  } catch (err) {
+    showToast('Erro: ' + err.message, true);
+  }
 }
 
-/**
- * Edita um cliente existente
- */
-function editClient(clientId) {
-    // Implementação simplificada - pode ser expandida
-    alert('Funcionalidade de edição em desenvolvimento');
+/* ── Toast ── */
+let toastTimer = null;
+
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className   = 'toast show ' + (isError ? 'toast-error' : 'toast-success');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
 }
 
-/**
- * Deleta um cliente
- */
-async function deleteClient(clientId) {
-    if (!confirm('Tem certeza que deseja deletar este cliente?')) {
-        return;
+/* ── Bootstrap ── */
+document.addEventListener('DOMContentLoaded', () => {
+  /* Nav buttons */
+  document.querySelectorAll('.nav-item[data-page]').forEach(btn => {
+    btn.addEventListener('click', () => showPage(btn.dataset.page));
+  });
+
+  /* Create buttons */
+  document.querySelectorAll('[data-create]').forEach(btn => {
+    btn.addEventListener('click', () => openCreate(btn.dataset.create));
+  });
+
+  /* Modal close */
+  document.getElementById('modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal')) closeModal();
+  });
+  document.getElementById('modal-cancel').addEventListener('click', closeModal);
+  document.getElementById('modal-save').addEventListener('click', saveRecord);
+
+  /* Close modal on Escape */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.getElementById('modal').classList.contains('open')) {
+      closeModal();
     }
+  });
 
-    try {
-        await apiCall(`/clients/${clientId}`, 'DELETE');
-        showAlert('Cliente deletado com sucesso!', 'success');
-        loadClients();
-    } catch (error) {
-        console.error('Erro ao deletar cliente:', error);
-    }
-}
-
-// ====================================
-// FUNÇÕES DE MOTORISTAS
-// ====================================
-
-/**
- * Carrega a lista de motoristas da API e exibe na tela
- */
-async function loadDrivers() {
-    try {
-        const drivers = await apiCall('/drivers');
-        const driversList = document.getElementById('driversList');
-
-        driversList.innerHTML = '';
-
-        if (drivers.length === 0) {
-            driversList.innerHTML = '<div class="empty-state"><p>Nenhum motorista cadastrado</p></div>';
-            return;
-        }
-
-        drivers.forEach(driver => {
-            const card = document.createElement('div');
-            card.className = 'item-card';
-            card.innerHTML = `
-                <div class="item-info">
-                    <h4>${driver.name}</h4>
-                    <p><strong>CPF:</strong> ${driver.cpf || 'N/A'}</p>
-                    <p><strong>Habilitação:</strong> ${driver.license}</p>
-                    <p><strong>Telefone:</strong> ${driver.phone || 'N/A'}</p>
-                </div>
-                <div class="item-actions">
-                    <button class="btn btn-success" onclick="editDriver(${driver.id})">Editar</button>
-                    <button class="btn btn-danger" onclick="deleteDriver(${driver.id})">Deletar</button>
-                </div>
-            `;
-            driversList.appendChild(card);
-        });
-    } catch (error) {
-        console.error('Erro ao carregar motoristas:', error);
-    }
-}
-
-/**
- * Cria um novo motorista via formulário
- */
-async function createDriver(event) {
-    event.preventDefault();
-
-    const driverData = {
-        name: document.getElementById('driverName').value,
-        cpf: document.getElementById('driverCPF').value,
-        license: document.getElementById('driverLicense').value,
-        phone: document.getElementById('driverPhone').value
-    };
-
-    try {
-        await apiCall('/drivers', 'POST', driverData);
-        showAlert('Motorista cadastrado com sucesso!', 'success');
-        event.target.reset();
-        loadDrivers();
-    } catch (error) {
-        console.error('Erro ao criar motorista:', error);
-    }
-}
-
-/**
- * Edita um motorista existente
- */
-function editDriver(driverId) {
-    alert('Funcionalidade de edição em desenvolvimento');
-}
-
-/**
- * Deleta um motorista
- */
-async function deleteDriver(driverId) {
-    if (!confirm('Tem certeza que deseja deletar este motorista?')) {
-        return;
-    }
-
-    try {
-        await apiCall(`/drivers/${driverId}`, 'DELETE');
-        showAlert('Motorista deletado com sucesso!', 'success');
-        loadDrivers();
-    } catch (error) {
-        console.error('Erro ao deletar motorista:', error);
-    }
-}
-
-// Carrega motoristas para o checkbox na aba de serviços
-async function loadDriversCheckbox() {
-    try {
-        const drivers = await apiCall('/drivers');
-        const driversCheckbox = document.getElementById('driversCheckbox');
-        driversCheckbox.innerHTML = '';
-
-        drivers.forEach(driver => {
-            const label = document.createElement('label');
-            label.className = 'checkbox-item';
-            label.innerHTML = `
-                <input type="checkbox" value="${driver.id}" class="driver-checkbox">
-                <span>${driver.name}</span>
-            `;
-            driversCheckbox.appendChild(label);
-        });
-    } catch (error) {
-        console.error('Erro ao carregar motoristas para checkbox:', error);
-    }
-}
-
-// ====================================
-// FUNÇÕES DE CAMINHÕES
-// ====================================
-
-/**
- * Carrega a lista de caminhões da API e exibe na tela
- */
-async function loadTrucks() {
-    try {
-        const trucks = await apiCall('/trucks');
-        const trucksList = document.getElementById('trucksList');
-
-        trucksList.innerHTML = '';
-
-        if (trucks.length === 0) {
-            trucksList.innerHTML = '<div class="empty-state"><p>Nenhum caminhão cadastrado</p></div>';
-            return;
-        }
-
-        trucks.forEach(truck => {
-            const card = document.createElement('div');
-            card.className = 'item-card';
-            card.innerHTML = `
-                <div class="item-info">
-                    <h4>Placa: ${truck.plate}</h4>
-                    <p><strong>Modelo:</strong> ${truck.model || 'N/A'}</p>
-                    <p><strong>Capacidade:</strong> ${truck.capacity || 'N/A'}</p>
-                    <p><strong>Observações:</strong> ${truck.notes || 'N/A'}</p>
-                </div>
-                <div class="item-actions">
-                    <button class="btn btn-success" onclick="editTruck(${truck.id})">Editar</button>
-                    <button class="btn btn-danger" onclick="deleteTruck(${truck.id})">Deletar</button>
-                </div>
-            `;
-            trucksList.appendChild(card);
-        });
-    } catch (error) {
-        console.error('Erro ao carregar caminhões:', error);
-    }
-}
-
-/**
- * Cria um novo caminhão via formulário
- */
-async function createTruck(event) {
-    event.preventDefault();
-
-    const truckData = {
-        plate: document.getElementById('truckPlate').value,
-        model: document.getElementById('truckModel').value,
-        capacity: document.getElementById('truckCapacity').value,
-        notes: document.getElementById('truckNotes').value || null
-    };
-
-    try {
-        await apiCall('/trucks', 'POST', truckData);
-        showAlert('Caminhão cadastrado com sucesso!', 'success');
-        event.target.reset();
-        loadTrucks();
-    } catch (error) {
-        console.error('Erro ao criar caminhão:', error);
-    }
-}
-
-/**
- * Edita um caminhão existente
- */
-function editTruck(truckId) {
-    alert('Funcionalidade de edição em desenvolvimento');
-}
-
-/**
- * Deleta um caminhão
- */
-async function deleteTruck(truckId) {
-    if (!confirm('Tem certeza que deseja deletar este caminhão?')) {
-        return;
-    }
-
-    try {
-        await apiCall(`/trucks/${truckId}`, 'DELETE');
-        showAlert('Caminhão deletado com sucesso!', 'success');
-        loadTrucks();
-    } catch (error) {
-        console.error('Erro ao deletar caminhão:', error);
-    }
-}
-
-// Carrega caminhões para o checkbox na aba de serviços
-async function loadTrucksCheckbox() {
-    try {
-        const trucks = await apiCall('/trucks');
-        const trucksCheckbox = document.getElementById('trucksCheckbox');
-        trucksCheckbox.innerHTML = '';
-
-        trucks.forEach(truck => {
-            const label = document.createElement('label');
-            label.className = 'checkbox-item';
-            label.innerHTML = `
-                <input type="checkbox" value="${truck.id}" class="truck-checkbox">
-                <span>${truck.plate} - ${truck.model || 'N/A'}</span>
-            `;
-            trucksCheckbox.appendChild(label);
-        });
-    } catch (error) {
-        console.error('Erro ao carregar caminhões para checkbox:', error);
-    }
-}
-
-// ====================================
-// FUNÇÕES DE AJUDANTES
-// ====================================
-
-/**
- * Carrega a lista de ajudantes da API e exibe na tela
- */
-async function loadHelpers() {
-    try {
-        const helpers = await apiCall('/helpers');
-        const helpersList = document.getElementById('helpersList');
-
-        helpersList.innerHTML = '';
-
-        if (helpers.length === 0) {
-            helpersList.innerHTML = '<div class="empty-state"><p>Nenhum ajudante cadastrado</p></div>';
-            return;
-        }
-
-        helpers.forEach(helper => {
-            const card = document.createElement('div');
-            card.className = 'item-card';
-            card.innerHTML = `
-                <div class="item-info">
-                    <h4>${helper.name}</h4>
-                    <p><strong>Telefone:</strong> ${helper.phone || 'N/A'}</p>
-                    <p><strong>Diária:</strong> ${helper.daily_rate || 'N/A'}</p>
-                </div>
-                <div class="item-actions">
-                    <button class="btn btn-success" onclick="editHelper(${helper.id})">Editar</button>
-                    <button class="btn btn-danger" onclick="deleteHelper(${helper.id})">Deletar</button>
-                </div>
-            `;
-            helpersList.appendChild(card);
-        });
-    } catch (error) {
-        console.error('Erro ao carregar ajudantes:', error);
-    }
-}
-
-/**
- * Cria um novo ajudante via formulário
- */
-async function createHelper(event) {
-    event.preventDefault();
-
-    const helperData = {
-        name: document.getElementById('helperName').value,
-        phone: document.getElementById('helperPhone').value,
-        daily_rate: document.getElementById('helperDailyRate').value
-    };
-
-    try {
-        await apiCall('/helpers', 'POST', helperData);
-        showAlert('Ajudante cadastrado com sucesso!', 'success');
-        event.target.reset();
-        loadHelpers();
-    } catch (error) {
-        console.error('Erro ao criar ajudante:', error);
-    }
-}
-
-/**
- * Edita um ajudante existente
- */
-function editHelper(helperId) {
-    alert('Funcionalidade de edição em desenvolvimento');
-}
-
-/**
- * Deleta um ajudante
- */
-async function deleteHelper(helperId) {
-    if (!confirm('Tem certeza que deseja deletar este ajudante?')) {
-        return;
-    }
-
-    try {
-        await apiCall(`/helpers/${helperId}`, 'DELETE');
-        showAlert('Ajudante deletado com sucesso!', 'success');
-        loadHelpers();
-    } catch (error) {
-        console.error('Erro ao deletar ajudante:', error);
-    }
-}
-
-// Carrega ajudantes para o checkbox na aba de serviços
-async function loadHelpersCheckbox() {
-    try {
-        const helpers = await apiCall('/helpers');
-        const helpersCheckbox = document.getElementById('helpersCheckbox');
-        helpersCheckbox.innerHTML = '';
-
-        helpers.forEach(helper => {
-            const label = document.createElement('label');
-            label.className = 'checkbox-item';
-            label.innerHTML = `
-                <input type="checkbox" value="${helper.id}" class="helper-checkbox">
-                <span>${helper.name}</span>
-            `;
-            helpersCheckbox.appendChild(label);
-        });
-    } catch (error) {
-        console.error('Erro ao carregar ajudantes para checkbox:', error);
-    }
-}
-
-// ====================================
-// FUNÇÕES DE SERVIÇOS
-// ====================================
-
-/**
- * Carrega a lista de serviços da API e exibe na tela
- */
-async function loadServices() {
-    try {
-        const services = await apiCall('/services');
-        const servicesList = document.getElementById('servicesList');
-
-        servicesList.innerHTML = '';
-
-        if (services.length === 0) {
-            servicesList.innerHTML = '<div class="empty-state"><p>Nenhum serviço cadastrado</p></div>';
-            return;
-        }
-
-        services.forEach(service => {
-            // Formata a data
-            const serviceDate = new Date(service.service_date).toLocaleDateString('pt-BR');
-
-            // Coleta informações dos recursos alocados
-            const trucks = service.trucks?.map(t => t.plate).join(', ') || 'Nenhum';
-            const drivers = service.drivers?.map(d => d.name).join(', ') || 'Nenhum';
-            const helpers = service.helpers?.map(h => h.name).join(', ') || 'Nenhum';
-
-            const card = document.createElement('div');
-            card.className = 'item-card';
-            card.innerHTML = `
-                <div class="item-info">
-                    <h4>Serviço #${service.id}</h4>
-                    <p><strong>Data:</strong> ${serviceDate}</p>
-                    <p><strong>Origem:</strong> ${service.origin}</p>
-                    <p><strong>Destino:</strong> ${service.destination}</p>
-                    <p><strong>Quantidade de Caixas:</strong> ${service.box_count}</p>
-                    <p><strong>Caminhões:</strong> ${trucks}</p>
-                    <p><strong>Motoristas:</strong> ${drivers}</p>
-                    <p><strong>Ajudantes:</strong> ${helpers}</p>
-                    ${service.notes ? `<p><strong>Observações:</strong> ${service.notes}</p>` : ''}
-                </div>
-                <div class="item-actions">
-                    <button class="btn btn-success" onclick="editService(${service.id})">Editar</button>
-                    <button class="btn btn-danger" onclick="deleteService(${service.id})">Deletar</button>
-                </div>
-            `;
-            servicesList.appendChild(card);
-        });
-    } catch (error) {
-        console.error('Erro ao carregar serviços:', error);
-    }
-}
-
-/**
- * Carrega clientes para o select na criação de serviços
- */
-async function loadClientsForSelect() {
-    try {
-        const clients = await apiCall('/clients');
-        const clientSelect = document.getElementById('serviceClient');
-
-        // Limpa o select (mantém a opção padrão)
-        const defaultOption = clientSelect.querySelector('option[value=""]');
-        clientSelect.innerHTML = '';
-        clientSelect.appendChild(defaultOption);
-
-        clients.forEach(client => {
-            const option = document.createElement('option');
-            option.value = client.id;
-            option.textContent = client.name;
-            clientSelect.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Erro ao carregar clientes para select:', error);
-    }
-}
-
-/**
- * Cria um novo serviço via formulário
- */
-async function createService(event) {
-    event.preventDefault();
-
-    // Coleta os checkboxes selecionados
-    const truckIds = Array.from(document.querySelectorAll('.truck-checkbox:checked'))
-        .map(cb => parseInt(cb.value));
-
-    const driverIds = Array.from(document.querySelectorAll('.driver-checkbox:checked'))
-        .map(cb => parseInt(cb.value));
-
-    const helperIds = Array.from(document.querySelectorAll('.helper-checkbox:checked'))
-        .map(cb => parseInt(cb.value));
-
-    const serviceData = {
-        client_id: parseInt(document.getElementById('serviceClient').value),
-        origin: document.getElementById('serviceOrigin').value,
-        destination: document.getElementById('serviceDestination').value,
-        box_count: parseInt(document.getElementById('serviceBoxCount').value),
-        service_date: document.getElementById('serviceDate').value,
-        notes: document.getElementById('serviceNotes').value || null,
-        truck_ids: truckIds,
-        driver_ids: driverIds,
-        helper_ids: helperIds
-    };
-
-    // Validações simples
-    if (!serviceData.client_id) {
-        showAlert('Por favor, selecione um cliente', 'error');
-        return;
-    }
-
-    try {
-        await apiCall('/services', 'POST', serviceData);
-        showAlert('Serviço registrado com sucesso!', 'success');
-        event.target.reset();
-        loadServices();
-    } catch (error) {
-        console.error('Erro ao criar serviço:', error);
-    }
-}
-
-/**
- * Edita um serviço existente
- */
-function editService(serviceId) {
-    alert('Funcionalidade de edição em desenvolvimento');
-}
-
-/**
- * Deleta um serviço
- */
-async function deleteService(serviceId) {
-    if (!confirm('Tem certeza que deseja deletar este serviço?')) {
-        return;
-    }
-
-    try {
-        await apiCall(`/services/${serviceId}`, 'DELETE');
-        showAlert('Serviço deletado com sucesso!', 'success');
-        loadServices();
-    } catch (error) {
-        console.error('Erro ao deletar serviço:', error);
-    }
-}
-
-// ====================================
-// INICIALIZAÇÃO
-// ====================================
-
-/**
- * Carrega os dados iniciais quando a página abre
- */
-window.addEventListener('DOMContentLoaded', function() {
-    // Carrega os clientes inicialmente
-    loadClients();
+  /* Load initial page */
+  showPage('clientes');
 });

@@ -5,7 +5,7 @@ MudaExpress FastAPI Application Entry Point
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import (
+from .routers import (
     router_cliente,
     router_caminhao,
     router_prestador,

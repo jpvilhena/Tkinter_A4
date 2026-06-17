@@ -16,8 +16,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from typing import List
 
-from database import get_db
-from models import (
+from .database import get_db
+from .models import (
     Cliente,
     Caminhao,
     Prestador,
@@ -26,7 +26,7 @@ from models import (
     AlocacaoServico,
     ContratoPrestador,
 )
-from schemas import (
+from .schemas import (
     ClienteCreate, ClienteUpdate, ClienteResponse,
     CaminhaoCreate, CaminhaoUpdate, CaminhaoResponse,
     PrestadorCreate, PrestadorUpdate, PrestadorResponse,
