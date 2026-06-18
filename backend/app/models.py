@@ -1,7 +1,5 @@
 """
-SQLAlchemy ORM Models for MudaExpress Database
-
-Uses the non-deprecated declarative_base from sqlalchemy.orm (SQLAlchemy 1.4+/2.x).
+Estes modelos descrevem e validam a estrutura dos dados guardados no banco de dados
 """
 
 from sqlalchemy import (

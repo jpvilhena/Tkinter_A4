@@ -1,8 +1,5 @@
 """
-Pydantic Schemas for Request/Response Validation
-
-Uses Pydantic v2 conventions: model_config, ConfigDict, Literal types,
-Decimal for monetary values, and proper Update schemas for PATCH routes.
+Estas schemas descrevem e validam a estruta dos dados que entram e saem da api. Destes dados, são gerados os docs openapi
 """
 
 from pydantic import BaseModel, Field, field_validator, ConfigDict

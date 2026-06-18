@@ -1,14 +1,13 @@
 """
-FastAPI Routers — Full CRUD for all MudaExpress entities.
+Operacoes Crud para cada tabela do banco de dados.
 
-Each router provides:
-  GET    /           → list all (with optional pagination)
-  GET    /{id}       → get one by ID
-  POST   /           → create
-  PATCH  /{id}       → partial update
-  DELETE /{id}       → delete
+Cada router tem as mesmas operacoes:
+  GET    /           -> lista todos elementos
+  GET    /{id}       -> Lista um elemento especifico
+  POST   /           -> Criar um elemento
+  PATCH  /{id}       -> Update
+  DELETE /{id}       -> Deleta um elementos
 
-Mount in main.py with app.include_router(...).
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -38,7 +37,7 @@ from .schemas import (
 
 
 # ─────────────────────────────────────────────
-# Helpers
+# Helper Functions
 # ─────────────────────────────────────────────
 
 def get_or_404(db: Session, model, record_id: int):
