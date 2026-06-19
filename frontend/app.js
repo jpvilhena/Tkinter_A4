@@ -1,17 +1,17 @@
 /* =============================================================
-   Entity definitions
-   Each entity describes how to display and edit a resource from the API.
+   Definicao de Dados
+   Cada entidade describes how to display and edit a resource from the API.
 
-   Properties:
-     path        – API endpoint path (appended to the base URL)
-     idField     – name of the primary-key field returned by the API
-     columns     – pairs of [fieldName, displayLabel] shown in the table
-     fields      – form fields, each with:
-                     name     – matches the API field name
-                     label    – human-readable label shown on screen
-                     type     – HTML input type, or 'select'
-                     required – if true, the field is marked required
-                     options  – list of allowed values (only for 'select')
+   Propriedades:
+     path        – API endpoint
+     idField     – nome da chave primaria esperada da api
+     columns     – pares de [fieldName, displayLabel] para tabelas
+     fields      – campos forms contendo:
+                     name     – igual a chave da api
+                     label    – versao legivel para o usuario
+                     type     – tipo de input html
+                     required – Se verdade o campo é requirido
+                     options  – valores permitidos escolher(Se select)
    ============================================================= */
 
 const ENTITIES = {

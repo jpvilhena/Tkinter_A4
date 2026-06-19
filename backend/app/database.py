@@ -1,3 +1,7 @@
+"""
+Engine para conectar ao servidor postgres
+"""
+
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
